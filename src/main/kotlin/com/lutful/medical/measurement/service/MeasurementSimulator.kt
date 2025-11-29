@@ -1,5 +1,6 @@
 package com.lutful.medical.measurement.service
 
+import com.lutful.medical.messaging.MeasurementProducer
 import com.lutful.medical.measurement.model.dto.CreateMeasurementRequest
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -9,8 +10,10 @@ import java.time.Instant
 import kotlin.random.Random
 
 @Component
-@Profile("!test") // Don't run this during tests!
-class MeasurementSimulator(private val measurementService: MeasurementService) {
+@Profile("!test")
+class MeasurementSimulator(
+    private val producer: MeasurementProducer
+) {
 
     private val logger = LoggerFactory.getLogger(MeasurementSimulator::class.java)
     private val patientIds = listOf("patient-1", "patient-2", "patient-3", "patient-4")
@@ -28,10 +31,9 @@ class MeasurementSimulator(private val measurementService: MeasurementService) {
         )
 
         try {
-            measurementService.createMeasurement(request)
-            logger.info("DEVICE_PUSH: Patient [$patientId] telemetry received | HR: ${request.heartRate} bpm")
+            producer.sendToStream(request)
         } catch (e: Exception) {
-            logger.error("SIMULATOR: Failed to process data", e)
+            logger.error("SIMULATOR: Failed to push data", e)
         }
     }
 }

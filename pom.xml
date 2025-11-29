@@ -19,12 +19,12 @@
     <properties>
         <java.version>21</java.version>
         <kotlin.version>1.9.25</kotlin.version>
-        <!-- Defines the Spring Cloud Release Train (Compatible with Boot 3.3.x) -->
+        <!-- CRITICAL: Defines Spring Cloud Version Train -->
         <spring-cloud.version>2023.0.3</spring-cloud.version>
         <bucket4j.version>8.10.1</bucket4j.version>
     </properties>
 
-    <!-- CRITICAL SECTION: This tells Maven where to find Spring Cloud versions -->
+    <!-- CRITICAL: This solves the "version missing" error -->
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -38,7 +38,7 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- 1. WEB & OPS -->
+        <!-- WEB & ACTUATOR -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -57,7 +57,7 @@
             <version>2.6.0</version>
         </dependency>
 
-        <!-- 2. DATABASE -->
+        <!-- DATABASE -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -76,7 +76,7 @@
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
 
-        <!-- 3. SECURITY -->
+        <!-- SECURITY -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
@@ -86,7 +86,7 @@
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
 
-        <!-- 4. RATE LIMITING -->
+        <!-- RATE LIMITING -->
         <dependency>
             <groupId>com.bucket4j</groupId>
             <artifactId>bucket4j-core</artifactId>
@@ -98,8 +98,7 @@
             <version>${bucket4j.version}</version>
         </dependency>
 
-        <!-- 5. MESSAGING (KAFKA) -->
-        <!-- Versions are now automatically provided by dependencyManagement above -->
+        <!-- MESSAGING (KAFKA) -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-stream</artifactId>
@@ -109,7 +108,7 @@
             <artifactId>spring-cloud-stream-binder-kafka</artifactId>
         </dependency>
 
-        <!-- 6. KOTLIN -->
+        <!-- KOTLIN -->
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
@@ -123,7 +122,7 @@
             <artifactId>kotlin-stdlib</artifactId>
         </dependency>
 
-        <!-- 7. TESTING -->
+        <!-- TESTING -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

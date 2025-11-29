@@ -6,9 +6,9 @@ import org.springframework.cloud.stream.function.StreamBridge
 import org.springframework.stereotype.Service
 
 @Service
-class KafkaProducer(private val streamBridge: StreamBridge) {
+class MeasurementProducer(private val streamBridge: StreamBridge) {
 
-    private val logger = LoggerFactory.getLogger(KafkaProducer::class.java)
+    private val logger = LoggerFactory.getLogger(MeasurementProducer::class.java)
 
     fun sendToStream(request: CreateMeasurementRequest) {
         logger.info("KAFKA_SEND: Pushing data for patient ${request.patientId}")
