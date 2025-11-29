@@ -4,10 +4,10 @@ import com.lutful.medical.measurement.model.dto.CreateMeasurementRequest
 import com.lutful.medical.measurement.model.dto.MeasurementResponse
 import com.lutful.medical.measurement.model.entity.MedicalMeasurement
 import com.lutful.medical.measurement.repository.MedicalMeasurementRepository
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import org.slf4j.LoggerFactory
 
 @Service
 class MeasurementServiceImpl(
@@ -38,52 +38,42 @@ class MeasurementServiceImpl(
         to: Instant?
     ): List<MeasurementResponse> {
 
+        // --- FIX: Logic to handle default 24-hour window ---
+        val effectiveTo = to ?: Instant.now()
+        val effectiveFrom = from ?: effectiveTo.minus(24, ChronoUnit.HOURS)
+
         logger.info(
-            "Searching measurements with patientId={}, from={}, to={}",
-            patientId, from, to
+            "Searching measurements. Patient: {}, Time: {} to {}",
+            patientId ?: "ALL", effectiveFrom, effectiveTo
         )
 
-        // Validate range if both provided
-        if (from != null && to != null && from.isAfter(to)) {
-            throw IllegalArgumentException("Invalid time range: from must be before to")
+        // --- FIX: Validation (Negative Case) ---
+        if (effectiveFrom.isAfter(effectiveTo)) {
+            throw IllegalArgumentException("Invalid time range: 'from' cannot be after 'to'")
         }
 
-        val results = when {
-            // Case 1: no filters → return everything (sorted)
-            patientId == null && from == null && to == null ->
-                repository.findAllByOrderByMeasuredAtDesc()
-
-            // Case 2: only patientId
-            patientId != null && from == null && to == null ->
-                repository.findByPatientIdOrderByMeasuredAtDesc(patientId)
-
-            // Case 3: only date range
-            patientId == null && from != null && to != null ->
-                repository.findByMeasuredAtBetweenOrderByMeasuredAtDesc(from, to)
-
-            // Case 4: patientId + date range
-            patientId != null && from != null && to != null ->
-                repository.findByPatientIdAndMeasuredAtBetweenOrderByMeasuredAtDesc(
-                    patientId, from, to
-                )
-
-            // Case 5: invalid partial state
-            else ->
-                throw IllegalArgumentException(
-                    "Both 'from' and 'to' must be provided for date range filtering"
-                )
+        val results = if (patientId != null) {
+            // Filter by Patient + Time Range
+            repository.findByPatientIdAndMeasuredAtBetweenOrderByMeasuredAtDesc(
+                patientId, effectiveFrom, effectiveTo
+            )
+        } else {
+            // Filter by Global Time Range (Default or Specified)
+            repository.findByMeasuredAtBetweenOrderByMeasuredAtDesc(
+                effectiveFrom, effectiveTo
+            )
         }
 
         return results.map { it.toResponse() }
     }
-}
 
-private fun MedicalMeasurement.toResponse() = MeasurementResponse(
-    id = id,
-    patientId = patientId,
-    systolic = systolic,
-    diastolic = diastolic,
-    heartRate = heartRate,
-    measuredAt = measuredAt,
-    receivedAt = receivedAt
-)
+    private fun MedicalMeasurement.toResponse() = MeasurementResponse(
+        id = id,
+        patientId = patientId,
+        systolic = systolic,
+        diastolic = diastolic,
+        heartRate = heartRate,
+        measuredAt = measuredAt,
+        receivedAt = receivedAt
+    )
+}
