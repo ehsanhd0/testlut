@@ -3,10 +3,29 @@ app:
   simulation:
     rate: 5000 # Run every 5000ms (5 seconds)
 
-# Standard Spring Configuration
+# -------------------------------------------------------------------------
+# SERVER CONFIGURATION (Added for AWS & Container Safety)
+# -------------------------------------------------------------------------
+server:
+  port: 8080
+  # CRITICAL FIX for AWS App Runner / Load Balancers
+  # Tells Spring to use the "X-Forwarded-Proto" header to detect HTTPS.
+  # Without this, Swagger UI breaks because it generates http:// links.
+  forward-headers-strategy: framework
+
+  # graceful shutdown prevents data loss during deployments
+  shutdown: graceful
+
+# -------------------------------------------------------------------------
+# SPRING STANDARD CONFIG
+# -------------------------------------------------------------------------
 spring:
   application:
     name: medical-measurements-service
+
+  # Lifecycle management for container environments
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
 
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/medicaldb}
@@ -15,9 +34,10 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
+      pool-name: HikariCP-Medical
 
   jpa:
-    open-in-view: false
+    open-in-view: false # Good practice: prevents DB connections from staying open during view rendering
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -28,6 +48,9 @@ spring:
     enabled: true
     baseline-on-migrate: true
 
+# -------------------------------------------------------------------------
+# OBSERVABILITY & DOCS
+# -------------------------------------------------------------------------
 springdoc:
   api-docs:
     path: /api-docs
@@ -40,4 +63,18 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus # Added prometheus for standard k8s monitoring
+  endpoint:
+    health:
+      show-details: always
+
+# -------------------------------------------------------------------------
+# LOGGING
+# -------------------------------------------------------------------------
+logging:
+  level:
+    root: INFO
+    # See your own logs clearly
+    com.lutful.medical: DEBUG
+    # Hide noisy Hibernate logs unless needed
+    org.hibernate.SQL: INFO

@@ -7,7 +7,7 @@ import java.time.Instant
 @Table(
     name = "medical_measurement",
     indexes = [
-        Index(name = "idx_patient_id", columnList = "patient_id")
+        Index(name = "idx_patient_measured_at", columnList = "patient_id, measured_at DESC")
     ]
 )
 data class MedicalMeasurement(
