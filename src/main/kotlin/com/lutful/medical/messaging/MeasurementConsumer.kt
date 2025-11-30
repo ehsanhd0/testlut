@@ -17,7 +17,7 @@ class MeasurementConsumer(
     private val logger = LoggerFactory.getLogger(MeasurementConsumer::class.java)
 
     /**
-     * Fix for ClassCastException:
+
      * We consume String (JSON) instead of the DTO directly.
      * This bypasses Spring's type inference issues with Kotlin.
      */
